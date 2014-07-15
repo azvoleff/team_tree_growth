@@ -16,6 +16,7 @@ trees <- tbl_df(trees)
 # BCI incorrectly uses zeros instead of NAs when NewDiameter does not apply.  
 trees$POMHeight[trees$NewDiameter == 0] <- NA
 trees$NewDiameter[trees$NewDiameter == 0] <- NA
+trees$NewDiameter[trees$POMHeight == 0] <- NA
 
 # Add an identifier to trees coding the sampling period number on a per site 
 # basis, with 1 assigned to the first sampling period in each site
@@ -24,6 +25,29 @@ SamplingPeriods <- SamplingPeriods[order(SamplingPeriods$sitecode, SamplingPerio
 SamplingPeriods <- mutate(SamplingPeriods, SamplingPeriodNumber=seq(1, length(SamplingPeriod)))
 trees$SamplingPeriodNumber <- SamplingPeriods$SamplingPeriodNumber[match(paste(trees$sitecode, trees$SamplingPeriod),
                                                                          paste(SamplingPeriods$sitecode, SamplingPeriods$SamplingPeriod))]
+
+###############################################################################
+# Add condition code columns. First need to clean the ConditionCodes field
+trees$ConditionCodes[trees$ConditionCodes == " "] <- ""
+trees$ConditionCodes[is.na(trees$ConditionCodes)] <- ""
+trees$ConditionCodes[grepl(' ', trees$ConditionCodes)]
+trees$ConditionCodes <- gsub('^,', '', trees$ConditionCodes)
+trees$ConditionCodes <- gsub('[,.]$', '', trees$ConditionCodes)
+trees$ConditionCodes <- gsub(' ', '', trees$ConditionCodes)
+trees$ConditionCodes <- gsub('[.]', ',', trees$ConditionCodes)
+
+table(grepl('[.]', trees$ConditionCodes))
+table(grepl('[ ]', trees$ConditionCodes))
+table(grepl('[.,]$', trees$ConditionCodes))
+table(grepl('^[.,]', trees$ConditionCodes))
+
+ConditionCodes <- c('B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 
+                    'N', 'O', 'P', 'R', 'S', 'T', 'U', 'V', 'W')
+for (ConditionCode in ConditionCodes) {
+    this_code <- unlist(lapply(trees$ConditionCodes, function(x) ConditionCode %in% x))
+    trees <- cbind(trees, this_code)
+    names(trees)[ncol(trees)] <- paste0('ConditionCode_', ConditionCode)
+}
 
 ###############################################################################
 # Correct for sites that are entering all new data after year 1 in the 
