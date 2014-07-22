@@ -18,7 +18,6 @@ pct_dbh_measures <- summarize(trees,
                             pct_newdbh=sum(!is.na(NewDiameter))/length(Diameter), 
                             pct_newdbh_missing=sum(is.na(NewDiameter))/length(Diameter))
 pct_dbh_measures_long <- melt(pct_dbh_measures)
-
 ggplot(pct_dbh_measures_long) +
     geom_bar(aes(SamplingPeriod, value, fill=variable), stat='identity') + 
     facet_wrap(~ sitecode) +
@@ -26,7 +25,26 @@ ggplot(pct_dbh_measures_long) +
     ylab("Fraction of measurements") +
     theme_grey(base_size=10, ) +
     theme(axis.text.x = element_text(angle=45, hjust=1))
-ggsave("dbh_measurement_summary.png", width=14, height=7.5, dpi=300)
+ggsave("dbh_measurement_summary.pdf", width=14, height=7.5, dpi=300)
+
+# Now check the number of new POMHeight and repeat POMHeight measurements for 
+# each site for each period
+trees <- group_by(trees, sitecode, SamplingPeriod)
+pct_pom_measures <- summarize(trees,
+                              pct_pom=sum(!is.na(POMHeight))/length(POMHeight), 
+                              pct_pom_missing=sum(is.na(POMHeight))/length(POMHeight), 
+                              pct_newpom=sum(!is.na(NewPOMHeight))/length(POMHeight), 
+                              pct_newpom_missing=sum(is.na(NewPOMHeight))/length(POMHeight))
+pct_pom_measures_long <- melt(pct_pom_measures)
+ggplot(pct_pom_measures_long) +
+    geom_bar(aes(SamplingPeriod, value, fill=variable), stat='identity') + 
+    facet_wrap(~ sitecode) +
+    xlab("Sampling Period") +
+    ylab("Fraction of measurements") +
+    theme_grey(base_size=10, ) +
+    theme(axis.text.x = element_text(angle=45, hjust=1))
+ggsave("pom_measurement_summary.pdf", width=14, height=7.5, dpi=300)
+
 
 # Now check the number of new diameter measurements by site and period that 
 # coexist int the same row with original diameter measurements. Do the same for 
