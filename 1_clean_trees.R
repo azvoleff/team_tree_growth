@@ -14,9 +14,10 @@ trees <- tbl_df(trees)
 # Correct Diameter -> NewDiameter issue for BCI, NAK, NNN, and RNF
 
 # BCI incorrectly uses zeros instead of NAs when NewDiameter does not apply.  
-trees$POMHeight[trees$NewDiameter == 0] <- NA
+trees$Diameter[trees$Diameter == 0] <- NA
+trees$POMHeight[trees$POMHeight == 0] <- NA
 trees$NewDiameter[trees$NewDiameter == 0] <- NA
-trees$NewDiameter[trees$POMHeight == 0] <- NA
+trees$NewPOMHeight[trees$NewPOMHeight == 0] <- NA
 
 # Add an identifier to trees coding the sampling period number on a per site 
 # basis, with 1 assigned to the first sampling period in each site
@@ -97,6 +98,12 @@ summ_stats <- summarize(group_by(trees, sitecode, SamplingPeriod),
                         newPOM_sd=sd(NewPOMHeight, na.rm=TRUE))
 
 ###############################################################################
+# Correct for NewDiameter issue. For now always take NewDiameter and/or 
+# NewPOMHeight when available
+trees$Diameter <- ifelse(is.na(trees$NewDiameter), trees$Diameter, trees$NewDiameter)
+trees$POMHeight <- ifelse(is.na(trees$NewPOMHeight), trees$POMHeight, trees$NewPOMHeight)
+
+###############################################################################
 # Review other issues noted in summary stats
 # COU 2011 has a very high max DBH
 ggplot(filter(trees, sitecode == 'COU')) + geom_bar(aes(Diameter)) + facet_wrap(~ SamplingPeriod, scales="free")
@@ -121,43 +128,43 @@ names(trees) <- gsub('1haPlot', 'OnehaPlot', names(trees))
 
 save(trees, file='trees_clean.RData')
 
-###############################################################################
-# Correct for sites that are entering all new data after year 1 in the 
-# NewDiameter column - this applies to 47,190 records across 4 sites
-newdia_rows <- (trees$sitecode %in% c('NAK', 'NNN', 'RNF')) &
-               (trees$SamplingPeriodNumber != 1)
-
-hist(trees[newdia_rows, ]$NewDiameter)
-table(is.na(trees[newdia_rows, ]$NewDiameter))
-table(trees[newdia_rows, ]$Diameter == trees[newdia_rows, ]$NewDiameter)
-
-hist(trees[newdia_rows, ]$NewPOMHeight)
-table(is.na(trees[newdia_rows, ]$NewPOMHeight))
-table(trees[newdia_rows, ]$POMHeight == trees[newdia_rows, ]$NewPOMHeight)
-
-trees[newdia_rows, ]$Diameter <- trees[newdia_rows, ]$NewDiameter
-# Also copy over the NewPOMHeight column to the POMHeight column since we are 
-# using the measurement taken at that POM
-trees[newdia_rows, ]$POMHeight <- trees[newdia_rows, ]$NewPOMHeight
-
-###############################################################################
-# Use NewDiameter column in sites that DID follow the protocol
-# Also exclude CSN here, until I figure out what is going on at CSN
-newdia_rows <- !(trees$sitecode %in% c('NAK', 'NNN', 'RNF', 'CSN')) &
-               !(is.na(trees$NewDiameter))
-
-hist(trees[newdia_rows, ]$NewDiameter)
-table(is.na(trees[newdia_rows, ]$NewDiameter))
-# Some NewDiameters match the old Diameter columns (234 do, 907 don't)
-table(trees[newdia_rows, ]$Diameter == trees[newdia_rows, ]$NewDiameter)
-
-hist(trees[newdia_rows, ]$NewPOMHeight)
-table(is.na(trees[newdia_rows, ]$NewPOMHeight))
-# Most NewPOMHeights do not match the POMHeight rows (only 2 match)
-table(trees[newdia_rows, ]$POMHeight == trees[newdia_rows, ]$NewPOMHeight)
-
-trees[newdia_rows, ]$Diameter <- trees[newdia_rows, ]$NewDiameter
-# Also copy over the NewPOMHeight column to the POMHeight column since we are 
-# using the measurement taken at that POM
-trees[newdia_rows, ]$POMHeight <- trees[newdia_rows, ]$NewPOMHeight
-
+# ###############################################################################
+# # Correct for sites that are entering all new data after year 1 in the 
+# # NewDiameter column - this applies to 47,190 records across 4 sites
+# newdia_rows <- (trees$sitecode %in% c('NAK', 'NNN', 'RNF')) &
+#                (trees$SamplingPeriodNumber != 1)
+#
+# hist(trees[newdia_rows, ]$NewDiameter)
+# table(is.na(trees[newdia_rows, ]$NewDiameter))
+# table(trees[newdia_rows, ]$Diameter == trees[newdia_rows, ]$NewDiameter)
+#
+# hist(trees[newdia_rows, ]$NewPOMHeight)
+# table(is.na(trees[newdia_rows, ]$NewPOMHeight))
+# table(trees[newdia_rows, ]$POMHeight == trees[newdia_rows, ]$NewPOMHeight)
+#
+# trees[newdia_rows, ]$Diameter <- trees[newdia_rows, ]$NewDiameter
+# # Also copy over the NewPOMHeight column to the POMHeight column since we are 
+# # using the measurement taken at that POM
+# trees[newdia_rows, ]$POMHeight <- trees[newdia_rows, ]$NewPOMHeight
+#
+# ###############################################################################
+# # Use NewDiameter column in sites that DID follow the protocol
+# # Also exclude CSN here, until I figure out what is going on at CSN
+# newdia_rows <- !(trees$sitecode %in% c('NAK', 'NNN', 'RNF', 'CSN')) &
+#                !(is.na(trees$NewDiameter))
+#
+# hist(trees[newdia_rows, ]$NewDiameter)
+# table(is.na(trees[newdia_rows, ]$NewDiameter))
+# # Some NewDiameters match the old Diameter columns (234 do, 907 don't)
+# table(trees[newdia_rows, ]$Diameter == trees[newdia_rows, ]$NewDiameter)
+#
+# hist(trees[newdia_rows, ]$NewPOMHeight)
+# table(is.na(trees[newdia_rows, ]$NewPOMHeight))
+# # Most NewPOMHeights do not match the POMHeight rows (only 2 match)
+# table(trees[newdia_rows, ]$POMHeight == trees[newdia_rows, ]$NewPOMHeight)
+#
+# trees[newdia_rows, ]$Diameter <- trees[newdia_rows, ]$NewDiameter
+# # Also copy over the NewPOMHeight column to the POMHeight column since we are 
+# # using the measurement taken at that POM
+# trees[newdia_rows, ]$POMHeight <- trees[newdia_rows, ]$NewPOMHeight
+#
