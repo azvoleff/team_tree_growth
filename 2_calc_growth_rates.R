@@ -7,7 +7,6 @@ load("trees_clean.RData")
 
 # Some sites have repeated measurements for the same tree. Until this is fixed 
 # in the database, just use the first observation.
-
 trees <- filter(trees, obs_num == 1)
 
 #trees <- filter(trees, sitecode == 'COU')
@@ -24,6 +23,7 @@ calc_growth <- function(piece) {
         diameter_start <- NA
         diameter_end <- NA
         growth <- NA
+        growth_ann <- NA
         pom_start <- NA
         pom_end <- NA
         pom_change <- NA
@@ -35,6 +35,7 @@ calc_growth <- function(piece) {
         diameter_start <- piece$Diameter[1:(nrow(piece) - 1)]
         diameter_end <- piece$Diameter[2:nrow(piece)]
         growth <- diff(piece$Diameter)
+        growth_ann <- (growth / n_days) * 365.25
         pom_start <- piece$POMHeight[1:(nrow(piece) - 1)]
         pom_end <- piece$POMHeight[2:nrow(piece)]
         pom_change <- diff(piece$POMHeight)
@@ -47,6 +48,7 @@ calc_growth <- function(piece) {
                       diameter_start=diameter_start,
                       diameter_end=diameter_end,
                       growth=growth,
+                      growth_ann=growth_ann,
                       pom_start=pom_start,
                       pom_end=pom_end,
                       pom_change=pom_change,
@@ -59,12 +61,14 @@ calc_growth <- function(piece) {
                       OnehaPlotYCoordinate=piece$OnehaPlotYCoordinate[1]))
 }
 
-# Need to consider tree condition codes, and need to detrend the growth data
+# TODO: consider tree condition codes, and detrend the growth data
 timestamp()
 samplingunits <- group_by(trees, SamplingUnitName)
 growth <- do(samplingunits, calc_growth(.))
 # Drop NA rows - these are trees with only one year of data
 growth <- growth[!is.na(growth$n_days), ]
+# Drop rows where the SamplingPeriodNumber is 1
+#growth <- growth[growth$SamplingPeriodNumber == 1, ]
 timestamp()
 
 save(growth, file='growth_unclean.RData')
