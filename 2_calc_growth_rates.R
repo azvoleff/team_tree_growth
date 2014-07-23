@@ -67,8 +67,6 @@ samplingunits <- group_by(trees, SamplingUnitName)
 growth <- do(samplingunits, calc_growth(.))
 # Drop NA rows - these are trees with only one year of data
 growth <- growth[!is.na(growth$n_days), ]
-# Drop rows where the SamplingPeriodNumber is 1
-#growth <- growth[growth$SamplingPeriodNumber == 1, ]
 timestamp()
 
 save(growth, file='growth_unclean.RData')

@@ -105,7 +105,7 @@ ggplot(frac_zero_growth_ann) +
     facet_wrap(~ sitecode) +
     xlab("Sampling period") +
     ylab("Fraction of observations") +
-    ggtitle("Number of trees with zero growth (filtered)") + 
+    ggtitle("Fraction of trees with zero growth (filtered)") + 
     theme(axis.text.x = element_text(angle=45, hjust=1))
 ggsave("growth_filtered_n_zero_growth_ann.png", width=14, height=7.5, dpi=300)
 
