@@ -99,7 +99,7 @@ table(trees$POMHeight == 1.3)
 
 
 summarize(trees,
-          n_dbh_match_old_newdbh=Diameter[2:nrow(Diameter)]==NewDiameter[1:(nrow(piece) - 1)]
+          n_dbh_match_old_newdbh=Diameter[2:nrow(Diameter)]==NewDiameter[1:(nrow(piece) - 1)])
 
 summarize(trees,
           dbh_min=min(Diameter, na.rm=TRUE),

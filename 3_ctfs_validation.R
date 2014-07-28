@@ -1,4 +1,5 @@
 library(ggplot2)
+library(stringr)
 library(reshape2)
 library(dplyr)
 
@@ -86,6 +87,23 @@ ggplot(ctfs_check_frac_notaccept) +
     ylab("Fraction of all measurements") +
     theme(axis.text.x = element_text(angle=45, hjust=1))
 ggsave("ctfs_growth_trim_notaccept.png", width=14, height=7.5, dpi=300)
+
+growth$OnehaPlotID <- str_extract(growth$SamplingUnitName, '^[A-Z]*-[A-Z]*-[0-9]*')
+growth$OnehaPlotID <- as.numeric(gsub('-', '', str_extract(growth$OnehaPlotID, '[0-9]*$')))
+growth$OnehaPlotID <- as.factor(gsub('-', '', str_extract(growth$OnehaPlotID, '[0-9]*$')))
+n_obs_per_plot <- summarize(group_by(filter(growth, ctfs_accept == 1), sitecode, OnehaPlotID, SamplingPeriodEnd),
+                            n_obs_per_plot=length(diameter_end))
+ggplot(n_obs_per_plot) +
+    geom_bar(aes(SamplingPeriodEnd, n_obs_per_plot, fill=OnehaPlotID), colour="black", position="dodge", stat="identity") +
+    facet_wrap(~ sitecode) +
+    xlab("Sampling period") +
+    ylab("Number of observations") +
+    ggtitle("Number of observations by one ha plot ID (filtered)") + 
+    theme(axis.text.x = element_text(angle=45, hjust=1))
+ggsave("growth_n_observations_per_plot.png", width=14, height=7.5, dpi=300)
+
+# What is going on with Korup??
+select(filter(growth, sitecode == "KRP"), sitecode, SamplingPeriodEnd, SamplingUnitName)
 
 n_obs <- summarize(group_by(growth, sitecode, SamplingPeriodEnd),
                  n_obs=length(diameter_end))
