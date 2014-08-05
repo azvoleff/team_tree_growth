@@ -57,6 +57,7 @@ calc_growth <- function(piece) {
                       Species=piece$Species[1],
                       sitecode=piece$sitecode[1],
                       SiteName=piece$SiteName[1],
+                      OnehaPlotNumber=piece$OnehaPlotNumber[1],
                       OnehaPlotXCoordinate=piece$OnehaPlotXCoordinate[1],
                       OnehaPlotYCoordinate=piece$OnehaPlotYCoordinate[1]))
 }

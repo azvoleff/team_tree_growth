@@ -114,28 +114,3 @@ ggplot(n_obs) +
     ylab("Number of observations") +
     theme(axis.text.x = element_text(angle=45, hjust=1))
 ggsave("growth_n_observations.png", width=14, height=7.5, dpi=300)
-
-growth$growth_ann <- (growth$growth / growth$n_days) * 365
-frac_zero_growth_ann <- summarize(group_by(filter(growth, ctfs_accept == 1), sitecode, SamplingPeriodEnd),
-                              frac_zero_growth_ann=sum(growth_ann == 0) / length(growth_ann))
-ggplot(frac_zero_growth_ann) +
-    geom_bar(aes(SamplingPeriodEnd, frac_zero_growth_ann), stat="identity") +
-    facet_wrap(~ sitecode) +
-    xlab("Sampling period") +
-    ylab("Fraction of observations") +
-    ggtitle("Fraction of trees with zero growth (filtered)") + 
-    theme(axis.text.x = element_text(angle=45, hjust=1))
-ggsave("growth_filtered_n_zero_growth_ann.png", width=14, height=7.5, dpi=300)
-
-growth$growth_ann_mean <- (growth$growth / growth$n_days) * 365
-growth_ann_mean <- summarize(group_by(filter(growth, ctfs_accept == 1), sitecode, SamplingPeriodEnd),
-                                  growth_ann_mean=mean(growth_ann_mean, na.rm=TRUE))
-ggplot(growth_ann_mean) +
-    geom_bar(aes(SamplingPeriodEnd, growth_ann_mean), stat="identity") +
-    facet_wrap(~ sitecode) +
-    xlab("Sampling period") +
-    ylab("Mean annual growth (cm)") +
-    ggtitle("Mean annual growth (filtered)") + 
-    theme(axis.text.x = element_text(angle=45, hjust=1))
-ggsave("growth_filtered_ann_mean.png", width=14, height=7.5, dpi=300)
-

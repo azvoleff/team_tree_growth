@@ -3,7 +3,8 @@ library(lubridate)
 library(reshape2)
 library(ggplot2)
 
-load('H:/Data/TEAM_Database_Downloads/veg_data2014-07-10.gzip')
+load('trees_clean.RData')
+
 trees <- result$tree
 sitecode_key <- read.csv("Site_Code_Key.csv")
 trees$sitecode <- sitecode_key$Site.Name.Code[match(trees$SiteName, sitecode_key$Site.Name.Database)]
