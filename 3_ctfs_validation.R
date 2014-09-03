@@ -41,30 +41,30 @@ growth$ctfs_accept <- with(growth, (!ctfs_pomdiff_gr_pomcut) &
                                    (!ctfs_dbh_end_lt0))
 save(growth, file='growth_ctfsflagged.RData')
 
-ctfs_overall_summary <- summarize(group_by(growth, sitecode),
-          ctfs_pomdiff_gr_pomcut=sum(ctfs_pomdiff_gr_pomcut, na.rm=TRUE),
-          ctfs_bad_posgrow=sum(ctfs_bad_posgrow),
-          ctfs_bad_neggrow=sum(ctfs_bad_neggrow),
-          ctfs_na_growth=sum(ctfs_na_growth),
-          ctfs_na_dbh_start=sum(ctfs_na_dbh_start),
-          ctfs_na_dbh_end=sum(ctfs_na_dbh_end),
-          ctfs_na_pom_start=sum(ctfs_na_pom_start),
-          ctfs_na_pom_end=sum(ctfs_na_pom_end),
-          ctfs_dbh_start_lt_mindbh=sum(ctfs_dbh_start_lt_mindbh),
-          ctfs_dbh_end_lt0=sum(ctfs_dbh_end_lt0))
+ctfs_overall_summary <- group_by(growth, sitecode) %>%
+    summarize(ctfs_pomdiff_gr_pomcut=sum(ctfs_pomdiff_gr_pomcut, na.rm=TRUE),
+              ctfs_bad_posgrow=sum(ctfs_bad_posgrow),
+              ctfs_bad_neggrow=sum(ctfs_bad_neggrow),
+              ctfs_na_growth=sum(ctfs_na_growth), 
+              ctfs_na_dbh_start=sum(ctfs_na_dbh_start), 
+              ctfs_na_dbh_end=sum(ctfs_na_dbh_end), 
+              ctfs_na_pom_start=sum(ctfs_na_pom_start), 
+              ctfs_na_pom_end=sum(ctfs_na_pom_end), 
+              ctfs_dbh_start_lt_mindbh=sum(ctfs_dbh_start_lt_mindbh), 
+              ctfs_dbh_end_lt0=sum(ctfs_dbh_end_lt0))
 ctfs_overall_summary
 
-ctfs_check_summary <- summarize(group_by(growth, sitecode, SamplingPeriodEnd),
-          ctfs_pomdiff_gr_pomcut=sum(ctfs_pomdiff_gr_pomcut)/length(diameter_end),
-          ctfs_bad_posgrow=sum(ctfs_bad_posgrow)/length(diameter_end),
-          ctfs_bad_neggrow=sum(ctfs_bad_neggrow)/length(diameter_end),
-          ctfs_na_growth=sum(ctfs_na_growth)/length(diameter_end),
-          ctfs_na_dbh_start=sum(ctfs_na_dbh_start)/length(diameter_end),
-          ctfs_na_dbh_end=sum(ctfs_na_dbh_end)/length(diameter_end),
-          ctfs_na_pom_start=sum(ctfs_na_pom_start)/length(diameter_end),
-          ctfs_na_pom_end=sum(ctfs_na_pom_end)/length(diameter_end),
-          ctfs_dbh_start_lt_mindbh=sum(ctfs_dbh_start_lt_mindbh)/length(diameter_end),
-          ctfs_dbh_end_lt0=sum(ctfs_dbh_end_lt0)/length(diameter_end))
+ctfs_check_summary <- group_by(growth, sitecode, SamplingPeriodEnd) %>%
+    summarize(ctfs_pomdiff_gr_pomcut=sum(ctfs_pomdiff_gr_pomcut)/length(diameter_end),
+              ctfs_bad_posgrow=sum(ctfs_bad_posgrow)/length(diameter_end), 
+              ctfs_bad_neggrow=sum(ctfs_bad_neggrow)/length(diameter_end), 
+              ctfs_na_growth=sum(ctfs_na_growth)/length(diameter_end), 
+              ctfs_na_dbh_start=sum(ctfs_na_dbh_start)/length(diameter_end), 
+              ctfs_na_dbh_end=sum(ctfs_na_dbh_end)/length(diameter_end), 
+              ctfs_na_pom_start=sum(ctfs_na_pom_start)/length(diameter_end), 
+              ctfs_na_pom_end=sum(ctfs_na_pom_end)/length(diameter_end), 
+              ctfs_dbh_start_lt_mindbh=sum(ctfs_dbh_start_lt_mindbh)/length(diameter_end), 
+              ctfs_dbh_end_lt0=sum(ctfs_dbh_end_lt0)/length(diameter_end))
 ctfs_check_summary <- melt(ctfs_check_summary)
 ggplot(ctfs_check_summary) +
     geom_bar(aes(x=SamplingPeriodEnd, y=value, fill=variable), stat="identity", 
@@ -76,8 +76,8 @@ ggplot(ctfs_check_summary) +
     theme(axis.text.x = element_text(angle=45, hjust=1))
 ggsave("ctfs_growth_trim_summary.png", width=14, height=7.5, dpi=300)
 
-ctfs_check_frac_notaccept <- summarize(group_by(growth, sitecode, SamplingPeriodEnd),
-          not_accept=sum(!ctfs_accept)/length(diameter_end))
+ctfs_check_frac_notaccept <- group_by(growth, sitecode, SamplingPeriodEnd) %>%
+    summarize(not_accept=sum(!ctfs_accept)/length(diameter_end))
 ggplot(ctfs_check_frac_notaccept) +
     geom_bar(aes(x=SamplingPeriodEnd, y=not_accept), stat="identity", 
              position="dodge") +
@@ -91,8 +91,9 @@ ggsave("ctfs_growth_trim_notaccept.png", width=14, height=7.5, dpi=300)
 growth$OnehaPlotID <- str_extract(growth$SamplingUnitName, '^[A-Z]*-[A-Z]*-[0-9]*')
 growth$OnehaPlotID <- as.numeric(gsub('-', '', str_extract(growth$OnehaPlotID, '[0-9]*$')))
 growth$OnehaPlotID <- as.factor(gsub('-', '', str_extract(growth$OnehaPlotID, '[0-9]*$')))
-n_obs_per_plot <- summarize(group_by(filter(growth, ctfs_accept == 1), sitecode, OnehaPlotID, SamplingPeriodEnd),
-                            n_obs_per_plot=length(diameter_end))
+n_obs_per_plot <- filter(growth, ctfs_accept == 1) %>%
+    group_by(sitecode, OnehaPlotID, SamplingPeriodEnd) %>%
+    summarize(n_obs_per_plot=length(diameter_end))
 ggplot(n_obs_per_plot) +
     geom_bar(aes(SamplingPeriodEnd, n_obs_per_plot, fill=OnehaPlotID), colour="black", position="dodge", stat="identity") +
     facet_wrap(~ sitecode) +
@@ -105,8 +106,8 @@ ggsave("growth_n_observations_per_plot.png", width=14, height=7.5, dpi=300)
 # What is going on with Korup??
 select(filter(growth, sitecode == "KRP"), sitecode, SamplingPeriodEnd, SamplingUnitName)
 
-n_obs <- summarize(group_by(growth, sitecode, SamplingPeriodEnd),
-                 n_obs=length(diameter_end))
+n_obs <- group_by(growth, sitecode, SamplingPeriodEnd) %>%
+    summarize(n_obs=length(diameter_end))
 ggplot(n_obs) +
     geom_bar(aes(SamplingPeriodEnd, n_obs), stat="identity") +
     facet_wrap(~ sitecode) +

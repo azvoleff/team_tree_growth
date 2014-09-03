@@ -5,11 +5,6 @@ library(ggplot2)
 
 load('trees_clean.RData')
 
-trees <- result$tree
-sitecode_key <- read.csv("Site_Code_Key.csv")
-trees$sitecode <- sitecode_key$Site.Name.Code[match(trees$SiteName, sitecode_key$Site.Name.Database)]
-trees <- tbl_df(trees)
-
 # First check the number of new diameter and repeat diameter measurements for 
 # each site for each period
 trees <- group_by(trees, sitecode, SamplingPeriod)
@@ -51,8 +46,10 @@ ggsave("pom_measurement_summary.pdf", width=14, height=7.5, dpi=300)
 # coexist int the same row with original diameter measurements. Do the same for 
 # POM heights
 pct_coexist <- summarize(trees,
-                       n_dbh_and_newdbh=sum(!is.na(Diameter) & !is.na(NewDiameter))/length(Diameter),
-                       n_dbh_and_newdbh_match=sum(Diameter == NewDiameter, na.rm=TRUE)/length(Diameter))
+                         n_dbh_and_newdbh=sum(!is.na(Diameter) & 
+                                              !is.na(NewDiameter))/length(Diameter),
+                         n_dbh_and_newdbh_match=sum(Diameter == NewDiameter, 
+                                                    na.rm=TRUE)/length(Diameter))
 
 ggplot(pct_coexist) +
     geom_bar(aes(SamplingPeriod, n_dbh_and_newdbh), stat='identity') +
