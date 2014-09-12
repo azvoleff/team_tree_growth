@@ -3,7 +3,7 @@ library(stringr)
 library(reshape2)
 library(dplyr)
 
-load('growth_unclean.RData')
+load('growth_dirty.RData')
 
 growth <- tbl_df(growth)
 

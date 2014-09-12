@@ -2,6 +2,7 @@ library(ggplot2)
 library(reshape2)
 library(dplyr)
 library(lubridate)
+library(stringr)
 
 load("trees_clean.RData")
 
@@ -62,7 +63,6 @@ calc_growth <- function(piece) {
                       OnehaPlotYCoordinate=piece$OnehaPlotYCoordinate[1]))
 }
 
-# TODO: consider tree condition codes, and detrend the growth data
 timestamp()
 samplingunits <- group_by(trees, SamplingUnitName)
 growth <- do(samplingunits, calc_growth(.))
@@ -70,4 +70,7 @@ growth <- do(samplingunits, calc_growth(.))
 growth <- growth[!is.na(growth$n_days), ]
 timestamp()
 
-save(growth, file='growth_unclean.RData')
+# Calculate relative growth rate (rgh)
+growth$growth_rgr <- (log(growth$diameter_end) - log(growth$diameter_start)) / growth$n_days
+
+save(growth, file='growth_dirty.RData')
