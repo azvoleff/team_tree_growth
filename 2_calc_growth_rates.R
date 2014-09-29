@@ -15,6 +15,7 @@ trees <- filter(trees, obs_num == 1)
 calc_growth <- function(piece) {
     piece <- piece[order(piece$ObservationDate), ]
     if (nrow(piece) == 1) {
+        SamplingPeriodStart <- ''
         SamplingPeriodEnd <- ''
         SamplingPeriodNumber <- NA
         # Below is a kludge - dplyr won't concatenate NAs and Date objects, so 
@@ -29,6 +30,7 @@ calc_growth <- function(piece) {
         pom_end <- NA
         pom_change <- NA
     } else {
+        SamplingPeriodStart <- piece$SamplingPeriod[1:(nrow(piece) - 1)]
         SamplingPeriodEnd <- piece$SamplingPeriod[2:nrow(piece)]
         SamplingPeriodNumber <- piece$SamplingPeriodNumber[2:nrow(piece)]
         period_end <- piece$ObservationDate[2:nrow(piece)]
@@ -42,6 +44,7 @@ calc_growth <- function(piece) {
         pom_change <- diff(piece$POMHeight)
     }
     return(data.frame(SamplingUnitName=piece$SamplingUnitName[1],
+                      SamplingPeriodStart=SamplingPeriodStart,
                       SamplingPeriodEnd=SamplingPeriodEnd,
                       SamplingPeriodNumber=SamplingPeriodNumber,
                       period_end=period_end,
