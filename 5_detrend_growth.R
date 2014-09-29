@@ -19,11 +19,8 @@ growth_clean <- filter(growth, ctfs_accept)
 sites <- read.csv('C:/Users/azvoleff/Desktop/Sitecode_Key/sitecode_key.csv')
 growth_clean <- merge(growth_clean, sites)
 
-group_by(growth_clean, sitecode) %>%
-    summarize(n_trees=length(unique(SamplingUnitName)))
-
 growth_data_summary <- group_by(growth_clean, sitecode) %>%
-    summarize(n_plots=length(unique(OnehaPlotNumber)),
+    summarise(n_plots=length(unique(OnehaPlotNumber)),
               first_year=min(year(period_end)),
               last_year=max(year(period_end)),
               n_years=length(unique(SamplingPeriodNumber)))
