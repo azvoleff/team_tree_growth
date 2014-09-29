@@ -96,7 +96,7 @@ gr_preds <- gr_models %>%
                   diameter_start=make_newdata(.$sitename_short),
                   growth_ann=predict(.$mod, newdata=make_newdata(.$sitename_short))))
 # Find maximum diameter_start for each site to plot this as well
-diameter_start_max <- group_by(growth_clean, sitename_short) %>% summarize(max=max(diameter_start))
+diameter_start_max <- group_by(growth_clean, sitename_short) %>% summarise(max=max(diameter_start))
 pgam <- ggplot(gr_preds) + 
     theme_bw(base_size=10) +
     geom_point(aes(diameter_start, growth_ann), alpha=.05, data=growth_clean) +
