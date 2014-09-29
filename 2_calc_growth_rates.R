@@ -10,6 +10,9 @@ load("trees_clean.RData")
 # in the database, just use the first observation.
 trees <- filter(trees, obs_num == 1)
 
+# Drop the second observaion period for Caxiuana in 2005
+trees <- filter(trees, SamplingPeriod != "2005.02")
+
 #trees <- filter(trees, sitecode == 'COU')
 
 calc_growth <- function(piece) {
