@@ -1,5 +1,7 @@
 library(dplyr)
 library(ggplot2)
+library(stringr)
+library(reshape2)
 library(lubridate)
 
 load('growth_ctfsflagged.RData')
@@ -29,14 +31,21 @@ table(is.na(growth$WD))
 #table(growth$OnehaPlotNumber, is.na(growth$WD))
 table(growth$Family == "Unknown", is.na(growth$WD))
 
-# Make plots of percent unknown species and family
+growth$plot_ID_num <- str_extract(growth$OnehaPlotNumber, "[0-9]*$")
 frac_unk <- group_by(growth, sitecode,
                      SamplingPeriodNumber, plot_ID_num) %>%
     summarize(frac_unk_family=sum(Family == "Unknown") / length(Family),
               frac_unk_species=sum(Species == "unknown") / length(Species),
-              frac_unk_genus=sum(Genus == "unknown") / length(Genus))
+              frac_unk_genus=sum(Genus == "Unknown") / length(Genus))
 
-ggplot(frac_unk) +
+dim(growth)
+# Throw out plots where greater than 20% of stems are "Unknown" family
+growth <- filter(growth, frac_unk$frac_unk_family[match(paste0(growth$SamplingPeriodNumber, growth$plot_ID_num),
+                                                        paste0(frac_unk$SamplingPeriodNumber, frac_unk$plot_ID_num))] <.2)
+dim(growth)
+
+# Make plots of percent unknown species and family
+ggplot(filter(frac_unk, !(sitecode %in% c("CSN", "NAK", "YAN")))) +
     geom_bar(aes(x=SamplingPeriodNumber, y=frac_unk_genus,
                  fill=plot_ID_num), stat="identity", 
              position="dodge") +
@@ -45,7 +54,7 @@ ggplot(frac_unk) +
     xlab("Sampling period")
 ggsave("growth_unknown_genus.png", width=14, height=7.5, dpi=300)
 
-ggplot(frac_unk) +
+ggplot(filter(frac_unk, !(sitecode %in% c("CSN", "NAK", "YAN")))) +
     geom_bar(aes(x=SamplingPeriodNumber, y=frac_unk_species,
                  fill=plot_ID_num), stat="identity", 
              position="dodge") +
@@ -54,7 +63,7 @@ ggplot(frac_unk) +
     xlab("Sampling period")
 ggsave("growth_unknown_species.png", width=14, height=7.5, dpi=300)
 
-ggplot(frac_unk) +
+ggplot(filter(frac_unk, !(sitecode %in% c("CSN", "NAK", "YAN")))) +
     geom_bar(aes(x=SamplingPeriodNumber, y=frac_unk_family,
                  fill=plot_ID_num), stat="identity", 
              position="dodge") +
@@ -63,11 +72,35 @@ ggplot(frac_unk) +
     xlab("Sampling period")
 ggsave("growth_unknown_family.png", width=14, height=7.5, dpi=300)
 
-# Throw out plots where greater than 20% of stems are "Unknown" family
-dim(growth)
-growth <- filter(growth, frac_unk$frac_unk_family[match(paste0(growth$SamplingPeriodNumber, growth$plot_ID_num),
-                                                        paste0(frac_unk$SamplingPeriodNumber, frac_unk$plot_ID_num))] <.2)
-dim(growth)
+n_species <- group_by(growth, sitecode) %>%
+    summarize(n_species=length(unique(Species)),
+              n_family=length(unique(Family)),
+              n_genus=length(unique(Genus))) %>%
+    melt()
+n_species$variable <- ordered(n_species$variable,
+                              levels=c("n_species", "n_genus", "n_family"))
+ggplot(filter(n_species, !(sitecode %in% c("CSN", "NAK", "YAN")))) +
+    geom_bar(aes(x=sitecode, y=value,
+                 fill=sitecode), stat="identity", 
+             position="dodge") +
+    facet_grid(variable~.) +
+    ylab("n") +
+    xlab("Site")
+ggsave("growth_n_species_genus_family.png", width=7.5, height=7.5, dpi=300)
+
+# Plot percent negative growth by site and year
+frac_neg <- group_by(growth, sitecode, year=year(period_end)) %>%
+    summarize(fraction_negative=sum(growth_ann < 0)/length(growth_ann))
+frac_neg$year <- factor(frac_neg$year)
+ggplot(filter(frac_neg, !(sitecode %in% c("CSN", "NAK", "YAN")))) +
+    geom_bar(aes(x=year, y=fraction_negative, fill=sitecode),
+             stat="identity") +
+    facet_wrap(~sitecode) +
+    ylab("Fraction of growth observations that are negative") +
+    xlab("Year") +
+    theme(axis.text.x = element_text(angle=45, hjust=1)) 
+ggsave("growth_frac_negative.png", width=14, height=7.5, dpi=300)
+
 
 # Fill in remaining NAs wood densities (stems with "Unknown" Family) with mean 
 # wood density value for that plot.
@@ -107,6 +140,5 @@ names(spi_24)[names(spi_24) == "spi"] <- "spi_24"
 growth <- merge(growth, spi_6)
 growth <- merge(growth, spi_12)
 growth <- merge(growth, spi_24)
-
 
 save(growth, file="growth_ctfsflagged_merged.RData")
