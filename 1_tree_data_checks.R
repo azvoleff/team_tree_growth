@@ -41,7 +41,6 @@ ggplot(pct_pom_measures_long) +
     theme(axis.text.x = element_text(angle=45, hjust=1))
 ggsave("pom_measurement_summary.pdf", width=14, height=7.5, dpi=300)
 
-
 # Now check the number of new diameter measurements by site and period that 
 # coexist int the same row with original diameter measurements. Do the same for 
 # POM heights
