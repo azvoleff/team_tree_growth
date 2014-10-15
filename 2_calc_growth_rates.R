@@ -76,7 +76,7 @@ growth <- do(samplingunits, calc_growth(.))
 growth <- growth[!is.na(growth$n_days), ]
 timestamp()
 
-# Calculate relative growth rate (rgh)
+# Calculate relative growth rate (rgr)
 growth$growth_rgr <- (log(growth$diameter_end) - log(growth$diameter_start)) / growth$n_days
 
 save(growth, file='growth_dirty.RData')
