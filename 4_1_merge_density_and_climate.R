@@ -123,11 +123,12 @@ load('../CHIRPS/vg_plot_spis.RData')
 spis <- tbl_df(spis)
 
 spis$plot_ID <- as.character(spis$plot_ID)
+# Note that some PSH plot IDs are missing - check this with Jimmy. The spatial 
+# data has the PSH plot IDs ranging from 4-9.
 table(spis$plot_ID)
 table(growth$plot_ID[!(growth$plot_ID %in% spis$plot_ID)])
 table(spis$plot_ID[grepl('PSH', spis$plot_ID)])
-# Note that some PSH plot IDs are missing - check this with Jimmy. The spatial 
-# data has the PSH plot IDs ranging from 4-9.
+table(growth$plot_ID[grepl('PSH', growth$plot_ID)])
 
 # Calculate closest SPI end point to growth period end point
 growth$period_end_month <- round_date(growth$period_end, "month")
@@ -149,47 +150,17 @@ load('../CHIRPS/vg_plot_cwds.RData')
 cwds <- tbl_df(cwds)
 
 cwds$plot_ID <- as.character(cwds$plot_ID)
-table(cwds$plot_ID)
-table(growth$plot_ID[!(growth$plot_ID %in% cwds$plot_ID)])
 
 # Calculate closest cwd end point to growth period end point
 cwds$period_end_month <- cwds$date
 
-
-# Define a function to calculate maximum cumulative water deficit over a given 
-# cwd time series and period
-src <- '
-    Rcpp::NumericVector cwd = Rcpp::NumericVector(CWD);
-    unsigned sz = cwd.size();
-    Rcpp::NumericVector mcwd(sz);
-    unsigned period = as<unsigned>(PERIOD);
-    for (unsigned n = 0; n < sz; n++) {
-        if (n < (period - 1)) {
-            mcwd[n] = 0;
-        } else {
-            double this_mcwd = 0;
-            for (unsigned i=0; i < period; i++) {
-                if (cwd[n - i] < this_mcwd) this_mcwd = cwd[n - i];
-            }
-            mcwd[n] = this_mcwd;
-        }
-    }
-    return(mcwd);
-    '
-mcwd <- cxxfunction(signature(CWD="numeric", PERIOD="integer"), body=src, 
-                    plugin="Rcpp")
-
-cwds <- group_by(cwds, plot_ID) %>%
-    arrange(date) %>%
-    mutate(mcwd_6=mcwd(cwd, 6),
-           mcwd_12=mcwd(cwd, 12),
-           mcwd_24=mcwd(cwd, 24))
-
-mcwd_6 <- select(cwds, plot_ID, period_end_month, mcwd_6)
-growth <- merge(growth, mcwd_6)
-mcwd_12 <- select(cwds, plot_ID, period_end_month, mcwd_12)
-growth <- merge(growth, mcwd_12)
-mcwd_24 <- select(cwds, plot_ID, period_end_month, mcwd_24)
-growth <- merge(growth, mcwd_24)
+cwd <- select(cwds, plot_ID, period_end_month, cwd)
+growth <- merge(growth, cwd)
+mcwd12 <- select(cwds, plot_ID, period_end_month, mcwd12)
+growth <- merge(growth, mcwd12)
+cwd_run12 <- select(cwds, plot_ID, period_end_month, cwd_run12)
+growth <- merge(growth, cwd_run12)
+mcwd_run12 <- select(cwds, plot_ID, period_end_month, mcwd_run12)
+growth <- merge(growth, mcwd_run12)
 
 save(growth, file="growth_ctfsflagged_merged.RData")
