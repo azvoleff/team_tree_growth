@@ -117,6 +117,36 @@ table(is.na(growth$WD))
 growth$dbh_class <- cut(growth$diameter_start, c(10, 20, 40, 500), include.lowest=TRUE)
 growth$WD_class <- cut(growth$WD, c(0, .4, .6, .8, 2))
 
+# Calculate closest month to growth period end point
+growth$period_end_month <- round_date(growth$period_end, "month")
+
+###############################################################################
+# Merge plot elevations
+load('vg_pts_elev.RData')
+vg_pts_elev <- select(vg_pts_elev, plot_ID, elev_m)
+names(vg_pts_elev)[names(vg_pts_elev) == "elev_m"] <- "elev"
+
+growth <- merge(growth, vg_pts_elev)
+
+###############################################################################
+# Merge CRU data
+load('../CRU/vg_plot_cru.RData')
+# Calculate closest cru end point to growth period end point
+cru$period_end_month <- as.Date(format(cru$date, "%Y/%m/01"))
+cru <- select(cru, plot_ID, dataset, period_end_month, value)
+cru <- dcast(cru, plot_ID + period_end_month ~ dataset)
+# Add mean annual max, mean annual min, and mean annual diurnal range
+cru <- group_by(cru, plot_ID) %>%
+    mutate(tmp_meanannual=stats::filter(tmp, rep(1/12, 12), sides=1),
+           tmn_meanannual=stats::filter(tmn, rep(1/12, 12), sides=1),
+           tmx_meanannual=stats::filter(tmx, rep(1/12, 12), sides=1),
+           dtr_meanannual=stats::filter(dtr, rep(1/12, 12), sides=1))
+
+table(growth$plot_ID %in% cru$plot_ID)
+table(cru$plot_ID %in% growth$plot_ID)
+
+growth <- merge(growth, cru)
+
 ###############################################################################
 # Merge SPI data
 load('../CHIRPS/vg_plot_spis.RData')
@@ -131,7 +161,6 @@ table(spis$plot_ID[grepl('PSH', spis$plot_ID)])
 table(growth$plot_ID[grepl('PSH', growth$plot_ID)])
 
 # Calculate closest SPI end point to growth period end point
-growth$period_end_month <- round_date(growth$period_end, "month")
 spis$period_end_month <- spis$date
 
 spi_6 <- filter(spis, spi_period == 6) %>% select(plot_ID, period_end_month, spi)
