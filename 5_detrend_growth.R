@@ -68,7 +68,6 @@ print.facetAdjust <- function(x, newpage = is.null(vp), vp = NULL) {
     invisible(x)
 }
 
-
 ################################################################################
 # Model with continuous diameter variable, gam smoother
 # GAM with random effect:
