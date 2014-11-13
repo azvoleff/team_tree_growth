@@ -192,4 +192,11 @@ growth <- merge(growth, cwd_run12)
 mcwd_run12 <- select(cwds, plot_ID, period_end_month, mcwd_run12)
 growth <- merge(growth, mcwd_run12)
 
+# Define maximum cumulative water deficit as a positive number to make 
+# interpretation easier
+growth$cwd <- abs(growth$cwd)
+growth$mcwd12 <- abs(growth$mcwd12)
+growth$cwd_run12 <- abs(growth$cwd_run12)
+growth$mcwd_run12 <- abs(growth$mcwd_run12)
+
 save(growth, file="growth_ctfsflagged_merged.RData")
