@@ -1,4 +1,3 @@
-library(Hmisc) # For smean.cl.boot
 library(dplyr)
 library(ggplot2)
 library(reshape2)
