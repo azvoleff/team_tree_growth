@@ -47,62 +47,62 @@ growth <- filter(growth, frac_unk$frac_unk_family[match(paste0(growth$SamplingPe
                                                         paste0(frac_unk$SamplingPeriodNumber, frac_unk$plot_ID_num))] <.2)
 dim(growth)
 
-# # Make plots of percent unknown species and family
-# ggplot(filter(frac_unk, !(sitecode %in% c("CSN", "NAK", "YAN")))) +
-#     geom_bar(aes(x=SamplingPeriodNumber, y=frac_unk_genus,
-#                  fill=plot_ID_num), stat="identity", 
-#              position="dodge") +
-#     facet_wrap(~sitecode) +
-#     ylab("Fraction observations with unknown genus") +
-#     xlab("Sampling period")
-# ggsave("growth_unknown_genus.png", width=14, height=7.5, dpi=300)
-#
-# ggplot(filter(frac_unk, !(sitecode %in% c("CSN", "NAK", "YAN")))) +
-#     geom_bar(aes(x=SamplingPeriodNumber, y=frac_unk_species,
-#                  fill=plot_ID_num), stat="identity", 
-#              position="dodge") +
-#     facet_wrap(~sitecode) +
-#     ylab("Fraction observations with unknown species") +
-#     xlab("Sampling period")
-# ggsave("growth_unknown_species.png", width=14, height=7.5, dpi=300)
-#
-# ggplot(filter(frac_unk, !(sitecode %in% c("CSN", "NAK", "YAN")))) +
-#     geom_bar(aes(x=SamplingPeriodNumber, y=frac_unk_family,
-#                  fill=plot_ID_num), stat="identity", 
-#              position="dodge") +
-#     facet_wrap(~sitecode) +
-#     ylab("Fraction observations with unknown family") +
-#     xlab("Sampling period")
-# ggsave("growth_unknown_family.png", width=14, height=7.5, dpi=300)
-#
-# n_species <- group_by(growth, sitecode) %>%
-#     summarize(n_species=length(unique(Species)),
-#               n_family=length(unique(Family)),
-#               n_genus=length(unique(Genus))) %>%
-#     melt()
-# n_species$variable <- ordered(n_species$variable,
-#                               levels=c("n_species", "n_genus", "n_family"))
-# ggplot(filter(n_species, !(sitecode %in% c("CSN", "NAK", "YAN")))) +
-#     geom_bar(aes(x=sitecode, y=value,
-#                  fill=sitecode), stat="identity", 
-#              position="dodge") +
-#     facet_grid(variable~.) +
-#     ylab("n") +
-#     xlab("Site")
-# ggsave("growth_n_species_genus_family.png", width=7.5, height=7.5, dpi=300)
-#
-# # Plot percent negative growth by site and year
-# frac_neg <- group_by(growth, sitecode, year=year(period_end)) %>%
-#     summarize(fraction_negative=sum(growth_ann < 0)/length(growth_ann))
-# frac_neg$year <- factor(frac_neg$year)
-# ggplot(filter(frac_neg, !(sitecode %in% c("CSN", "NAK", "YAN")))) +
-#     geom_bar(aes(x=year, y=fraction_negative, fill=sitecode),
-#              stat="identity") +
-#     facet_wrap(~sitecode) +
-#     ylab("Fraction of growth observations that are negative") +
-#     xlab("Year") +
-#     theme(axis.text.x = element_text(angle=45, hjust=1)) 
-# ggsave("growth_frac_negative.png", width=14, height=7.5, dpi=300)
+# Make plots of percent unknown species and family
+ggplot(frac_unk) +
+    geom_bar(aes(x=SamplingPeriodNumber, y=frac_unk_genus,
+                 fill=plot_ID_num), stat="identity", 
+             position="dodge") +
+    facet_wrap(~sitecode) +
+    ylab("Fraction observations with unknown genus") +
+    xlab("Sampling period")
+ggsave("growth_unknown_genus.png", width=14, height=7.5, dpi=300)
+
+ggplot(frac_unk) +
+    geom_bar(aes(x=SamplingPeriodNumber, y=frac_unk_species,
+                 fill=plot_ID_num), stat="identity", 
+             position="dodge") +
+    facet_wrap(~sitecode) +
+    ylab("Fraction observations with unknown species") +
+    xlab("Sampling period")
+ggsave("growth_unknown_species.png", width=14, height=7.5, dpi=300)
+
+ggplot(frac_unk) +
+    geom_bar(aes(x=SamplingPeriodNumber, y=frac_unk_family,
+                 fill=plot_ID_num), stat="identity", 
+             position="dodge") +
+    facet_wrap(~sitecode) +
+    ylab("Fraction observations with unknown family") +
+    xlab("Sampling period")
+ggsave("growth_unknown_family.png", width=14, height=7.5, dpi=300)
+
+n_species <- group_by(growth, sitecode) %>%
+    summarize(n_species=length(unique(Species)),
+              n_family=length(unique(Family)),
+              n_genus=length(unique(Genus))) %>%
+    melt()
+n_species$variable <- ordered(n_species$variable,
+                              levels=c("n_species", "n_genus", "n_family"))
+ggplot(n_species) +
+    geom_bar(aes(x=sitecode, y=value,
+                 fill=sitecode), stat="identity", 
+             position="dodge") +
+    facet_grid(variable~.) +
+    ylab("n") +
+    xlab("Site")
+ggsave("growth_n_species_genus_family.png", width=7.5, height=7.5, dpi=300)
+
+# Plot percent negative growth by site and year
+frac_neg <- group_by(growth, sitecode, year=year(period_end)) %>%
+    summarize(fraction_negative=sum(growth_ann < 0)/length(growth_ann))
+frac_neg$year <- factor(frac_neg$year)
+ggplot(frac_neg) +
+    geom_bar(aes(x=year, y=fraction_negative, fill=sitecode),
+             stat="identity") +
+    facet_wrap(~sitecode) +
+    ylab("Fraction of growth observations that are negative") +
+    xlab("Year") +
+    theme(axis.text.x = element_text(angle=45, hjust=1)) 
+ggsave("growth_frac_negative.png", width=14, height=7.5, dpi=300)
 
 # Fill in remaining NAs wood densities (stems with "Unknown" Family) with mean 
 # wood density value for that plot.
