@@ -6,24 +6,26 @@ library(rgeos)
 library(foreach)
 library(doParallel)
 
-sitecode_key <- read.csv('H:/Data/TEAM/Sitecode_Key/sitecode_key.csv')
-sitecodes <- unique(sitecode_key$sitecode)
-
-cl <- makeCluster(4)
-registerDoParallel(cl)
-
 prefixes <- c('D:/azvoleff/Data', # CI-TEAM
               'H:/Data', # Buffalo drive
               'O:/Data', # Blue drive
               '/localdisk/home/azvoleff/Data') # vertica1
 prefix <- prefixes[match(TRUE, unlist(lapply(prefixes, function(x) file_test('-d', x))))]
 
+sitecode_key <- read.csv(file.path(prefix, 'TEAM', 'Sitecode_Key', 'sitecode_key.csv'))
+sitecodes <- unique(sitecode_key$sitecode)
+
+sitecodes <- sitecodes[sitecodes != "VIR"]
+
+cl <- makeCluster(12)
+registerDoParallel(cl)
+
 load('vg_pts.RData')
 sitecodes <- as.character(sitecodes[sitecodes %in% vg_pts$sitecode])
 
 vg_pts_elev <- foreach(sitecode=sitecodes,
                        .packages=c("rgdal", "raster", "sp", "rgeos", 
-                                   "gdalUtils"),
+                                   "gdalUtils", "foreach", "iterators"),
                        .inorder=FALSE, .combine=rbind)  %dopar% {
     # Load the DEM extents needed for the auto_setup_dem function
     load('dem_extents.RData')
@@ -87,7 +89,7 @@ vg_pts_elev <- foreach(sitecode=sitecodes,
 
     # Extract the mean elevation of the CRU grid box containing each vegetation 
     # plot
-    elev_cru_mean <- round(extract(dem_mosaic, polys, fun=mean))
+    elev_cru_mean <- round(extract(dem_mosaic, polys, fun=mean, na.rm=TRUE))
 
     return(data.frame(sitecode=sitecode, 
                       plot_ID=as.character(these_vg_pts@data$Unit_ID), 
