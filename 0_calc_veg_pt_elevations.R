@@ -54,10 +54,10 @@ vg_pts_elev <- foreach(sitecode=sitecodes,
         # Calculate minimum bounding box coordinates:
         mosaic_te <- as.numeric(bbox(these_vg_pts))
         # Expand bbox slightly:
-        mosaic_te[1] <- mosaic_te[1] - .05
-        mosaic_te[2] <- mosaic_te[2] - .05
-        mosaic_te[3] <- mosaic_te[3] + .05
-        mosaic_te[4] <- mosaic_te[4] + .05
+        mosaic_te[1] <- mosaic_te[1] - .10
+        mosaic_te[2] <- mosaic_te[2] - .10
+        mosaic_te[3] <- mosaic_te[3] + .10
+        mosaic_te[4] <- mosaic_te[4] + .10
         # Use mosaic_rasters from gdalUtils for speed:
         mosaic_rasters(dem_list, mosaic_file, te=mosaic_te, of="GTiff", 
                        overwrite=TRUE, ot='Int16')
@@ -67,10 +67,32 @@ vg_pts_elev <- foreach(sitecode=sitecodes,
         mosaic_file <- filename(dem_mosaic)
     }
 
+    # Calculate elevations of veg points
     these_vg_pts_elev <- extract(dem_mosaic, these_vg_pts)
+
+    # Calculate CRU bounding boxes for veg points
+    lls <- floor(coordinates(these_vg_pts) / .5) * .5
+    urs <- lls + .5
+    polys <- foreach(ll=iter(lls, "row"), ur=iter(urs, "row"),
+                     poly_id=1:nrow(lls), .final=SpatialPolygons) %do% {
+        poly_coords <- matrix(c(ll[1], ll[2],
+                                ll[1], ur[2],
+                                ur[1], ur[2],
+                                ur[1], ll[2],
+                                ll[1], ll[2]),
+                               ncol=2, byrow=TRUE)
+        Polygons(list(Polygon(poly_coords)), poly_id)
+    }
+    proj4string(polys) <- proj4string(these_vg_pts)
+
+    # Extract the mean elevation of the CRU grid box containing each vegetation 
+    # plot
+    elev_cru_mean <- round(extract(dem_mosaic, polys, fun=mean))
+
     return(data.frame(sitecode=sitecode, 
                       plot_ID=as.character(these_vg_pts@data$Unit_ID), 
-                      elev_m=these_vg_pts_elev))
+                      elev_m=these_vg_pts_elev,
+                      elev_cru_m=elev_cru_mean))
 }
 save(vg_pts_elev, file="vg_pts_elev.RData")
 
