@@ -9,10 +9,10 @@ load('trees_clean.RData')
 # each site for each period
 trees <- group_by(trees, sitecode, SamplingPeriod)
 pct_dbh_measures <- summarize(trees,
-                            pct_dbh=sum(!is.na(Diameter))/length(Diameter), 
-                            pct_dbh_missing=sum(is.na(Diameter))/length(Diameter), 
-                            pct_newdbh=sum(!is.na(NewDiameter))/length(Diameter), 
-                            pct_newdbh_missing=sum(is.na(NewDiameter))/length(Diameter))
+                              pct_dbh=sum(!is.na(Diameter))/length(Diameter), 
+                              pct_dbh_missing=sum(is.na(Diameter))/length(Diameter), 
+                              pct_newdbh=sum(!is.na(NewDiameter))/length(Diameter), 
+                              pct_newdbh_missing=sum(is.na(NewDiameter))/length(Diameter))
 pct_dbh_measures_long <- melt(pct_dbh_measures)
 ggplot(pct_dbh_measures_long) +
     geom_bar(aes(SamplingPeriod, value, fill=variable), stat='identity') + 
