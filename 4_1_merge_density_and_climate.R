@@ -123,8 +123,9 @@ growth$period_end_month <- round_date(growth$period_end, "month")
 ###############################################################################
 # Merge plot elevations
 load('vg_pts_elev.RData')
-vg_pts_elev <- select(vg_pts_elev, plot_ID, elev_m)
+vg_pts_elev <- select(vg_pts_elev, plot_ID, elev_m, elev_cru_m)
 names(vg_pts_elev)[names(vg_pts_elev) == "elev_m"] <- "elev"
+names(vg_pts_elev)[names(vg_pts_elev) == "elev_cru_m"] <- "elev_cru"
 
 growth <- merge(growth, vg_pts_elev)
 

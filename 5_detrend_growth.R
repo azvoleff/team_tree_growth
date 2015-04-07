@@ -14,8 +14,7 @@ load("growth_ctfsflagged_merged.RData")
 # Only use clean data when developing the models
 growth_clean <- filter(growth, ctfs_accept)
 
-#sites <- read.csv('H:/Data/TEAM/Sitecode_Key/sitecode_key.csv')
-sites <- read.csv('C:/Users/azvoleff/Desktop/Sitecode_Key/sitecode_key.csv')
+sites <- read.csv('H:/Data/TEAM/Sitecode_Key/sitecode_key.csv')
 growth_clean <- merge(growth_clean, sites)
 
 growth_data_summary <- group_by(growth_clean, sitecode) %>%
